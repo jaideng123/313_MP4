@@ -1,4 +1,4 @@
-#include "semaphore.h"
+#include "semaphore.H"
 #include <iostream>
 #include <pthread.h>
 
@@ -7,19 +7,16 @@ pthread_t t0;
 pthread_t t1;
 pthread_t t2;
 pthread_t t3;
-//Semaphore s(1)
+Semaphore s(1);
 void *inc(void *param){
 	int *x_ptr = (int *)param;
 	for (int i = 0; i < 100000; ++i)
 	{
+		s.P();
 		(*x_ptr)++;
+		s.V();
 	}
 	cout<<"x increment finished\n";
-}
-void *dec(void *param){
-	int *x_ptr = (int *)param;
-	
-	cout<<"x decrement finished\n";
 }
 int main(){
 	//Semaphore sem(1);
