@@ -41,25 +41,41 @@
 
 class Semaphore {
 private:
-  /* -- INTERNAL DATA STRUCTURES
-     You may need to change them to fit your implementation. */
 
   int             value;
   pthread_mutex_t m;
   pthread_cond_t  c;
-
+  void Lock() { pthread_mutex_lock(&m); } 
+  void Unlock() { pthread_mutex_unlock(&m); }
 public:
 
   /* -- CONSTRUCTOR/DESTRUCTOR */
 
-  Semaphore(int _val);
+  Semaphore(int _val){
+    value = _val;
+    m = PTHREAD_MUTEX_INITIALIZER;
+    c = PTHREAD_COND_INITIALIZER;
+  }
 
-  ~Semaphore();
+  //~Semaphore(){}
 
   /* -- SEMAPHORE OPERATIONS */
 
-  int P();
-  int V();
+  int P(){
+    Lock();
+    while(value <= 0)//wait for semaphore to be ready
+      pthread_cond_wait(&c, &m);
+    value--;
+    Unlock();
+  }
+  int V(){
+    Lock();
+    int last_val = value;
+    value++;
+    Unlock();
+    if(last_val == 0)//signal process to wake up
+      pthread_cond_signal(&c);
+  }
 };
 
 
