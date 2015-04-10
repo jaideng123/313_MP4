@@ -18,6 +18,36 @@ void *inc(void *param){
 	}
 	cout<<"x increment finished\n";
 }
+
+/*int main(int argc, char ** argv){
+    int c;
+	int index;
+	int n = 8; //number of data requests per person
+	int b = 10000; //size of bounded buffer in requests
+	int w = 3; //number of worker threads
+	while ((c = getopt (argc, argv, "b:s:")) != -1) {
+		switch(c) {
+		case 'b':
+			b = atoi(optarg);
+			break;
+		case 's':
+			s = atoi(optarg);
+			break;
+		case '?':
+			return 1;
+		default:
+			abort();
+		}
+	}
+	
+//for getopt failures
+	for(index = optind; index < argc; ++index){
+		printf("Non-option argument %s\n", argv[index]);
+	}
+	return 0;
+}
+*/
+
 int main(){
 	//Semaphore sem(1);
 	int number = 0;
