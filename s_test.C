@@ -51,13 +51,23 @@ void *inc(void *param){
 int main(){
 	//Semaphore sem(1);
 	int number = 0;
-	pthread_create(&t0, NULL, inc, &number);
+	BoundedBuffer buffer(3);
+	Item item1(1, '1');
+	Item item2(2, '2');
+	Item item3(3, '3');
+	pthread_create(&t0, NULL, buffer.addToBuffer, item1);
+	pthread_create(&t1, NULL, buffer.addToBuffer, item2);
+	pthread_create(&t2, NULL, buffer.addToBuffer, item3);
+	pthread_join(t0, NULL);
+	pthread_join(t1, NULL);
+	pthread_join(t2, NULL);
+	/*pthread_create(&t0, NULL, inc, &number);
 	pthread_create(&t1, NULL, inc, &number);
 	pthread_create(&t2, NULL, inc, &number);
 	pthread_create(&t3, NULL, inc, &number);
 	pthread_join(t0, NULL);
 	pthread_join(t1, NULL);
 	pthread_join(t2, NULL);
-	pthread_join(t3, NULL);
+	pthread_join(t3, NULL);*/
 	cout<<number<<endl;
 }
