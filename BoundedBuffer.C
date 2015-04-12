@@ -4,14 +4,16 @@ Item::Item(){
 
 }
 
-Item::Item(int d, char p){
+Item::Item(int d, char p, string m){
 	data = d;
 	person = p;
+	message = m;
 }
 
 Item::Item(const Item& other){
 	data = other.data;
 	person = other.person;
+	message = other.message;
 }
 
 Item::~Item(){
@@ -24,19 +26,43 @@ BoundedBuffer::BoundedBuffer(int size){
 BoundedBuffer::~BoundedBuffer(){
 }
 
-void *BoundedBuffer::addToBuffer(void *item){
-	Item *temp = (Item *) item;
-	if (buffer.size() < maxSize){
-		s.P();
-		buffer.push_back(*temp);
+void BoundedBuffer::addToRequestBuffer(Item item){
+	s.P();
+	if(requestBuffer.size() < maxSize){
+		requestBuffer.push_back(item);
 		s.V();
+	}
+	else{
+		s.V();
+		while (true){
+			if(requestBuffer.size() < maxSize){
+			s.P();
+			requestBuffer.push_back(item);
+			s.V();
+			break;
+			}
+		}
 	}
 }
 
-void *BoundedBuffer::removeFromBuffer(void *item){
+Item BoundedBuffer::removeFromRequestBuffer(){
 	s.P();
-	((Item *)item)->setData(buffer[0].getData());
-	((Item *)item)->setPerson(buffer[0].getPerson());
-	buffer.erase(buffer.begin());
+	Item item(requestBuffer[0].getData(), requestBuffer[0].getPerson(), requestBuffer[0].getMessage());
+	requestBuffer.erase(requestBuffer.begin());
 	s.V();
+	return item;
+}
+
+void BoundedBuffer::addToResponseBuffer(Item item){
+	s.P();
+	responseBuffer.push_back(item);
+	s.v();
+}
+
+Item BoundedBuffer::removeFromResponseBuffer(){
+	s.P();
+	Item item(responseBuffer[0].getData(), responseBuffer[0].getPerson(), responseBuffer[0].getMessage());
+	responseBuffer.erase(responseBuffer.begin());
+	s.v();
+	return item;
 }
