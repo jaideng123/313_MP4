@@ -30,6 +30,7 @@
 
 #include "reqchannel.H"
 #include "BoundedBuffer.H"
+#include <pthread.h>
 
 using namespace std;
 
@@ -63,40 +64,53 @@ void *request(void *param){
 		Item item(args->id,"data Joe Smith");
 		args->b->add(item);
 	}
-	return NULL;
+  args->b->finished();
+}
+void *worker(void *param){
+  BoundedBuffer* b = (BoundedBuffer *)param;
+  while(b->numFinished != 3 && b->getSize() != 0){
+    Item i = b->remove();
+    RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
+    i.setData(chan.send_request(i.getMessage()));
+  }
 }
 
 int main(int argc, char * argv[]) {
+  pid_t parent = getpid();
+  pid_t pid = fork();
+  vector<pthread_t> clients(3);
+  vector<pthread_t> workers(3);
 
-  cout << "CLIENT STARTED:" << endl;
-
-  cout << "Establishing control channel... " << flush;
-  RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
-  cout << "done." << endl;;
-
-  /* -- Start sending a sequence of requests */
-
-  string reply1 = chan.send_request("hello");
-  cout << "Reply to request 'hello' is '" << reply1 << "'" << endl;
-
-  string reply2 = chan.send_request("data Joe Smith");
-  cout << "Reply to request 'data Joe Smith' is '" << reply2 << "'" << endl;
-
-  string reply3 = chan.send_request("data Jane Smith");
-  cout << "Reply to request 'data Jane Smith' is '" << reply3 << "'" << endl;
-
-  string reply5 = chan.send_request("newthread");
-  cout << "Reply to request 'newthread' is " << reply5 << "'" << endl;
-  RequestChannel chan2(reply5, RequestChannel::CLIENT_SIDE);
-
-  string reply6 = chan2.send_request("data John Doe");
-  cout << "Reply to request 'data John Doe' is '" << reply6 << "'" << endl;
-
-  string reply7 = chan2.send_request("quit");
-  cout << "Reply to request 'quit' is '" << reply7 << "'" << endl;
-
-  string reply4 = chan.send_request("quit");
-  cout << "Reply to request 'quit' is '" << reply4 << "'" << endl;
+  if (pid == -1)
+  {
+    // error, failed to fork()
+  } 
+  else if(pid == 0){
+    // we are the child
+     char *arg[12];
+    if(execv("./dataserver",argv) == -1)
+      cout<<"Error, fork failed"<<endl;
+    return -1;
+  }
+  Semaphore s(1);
+  BoundedBuffer b(50,&s);
+  Arguments arg1;
+  arg1.id = 'j';
+  arg1.b = &b;
+  pthread_create(&clients[0], NULL, request, &arg1);
+  Arguments arg2;
+  arg2.id = 'l';
+  arg2.b = &b;
+  pthread_create(&clients[1], NULL, request, &arg2);
+  Arguments arg3;
+  arg3.id = 'g';
+  arg3.b = &b;
+  pthread_create(&clients[2], NULL, request, &arg3);
+  for (int i = 0; i < clients.size(); ++i)
+  {
+    pthread_join(clients[i], NULL);
+  }
+  cout<<b.getSize()<<endl;
 
   usleep(1000000);
 }

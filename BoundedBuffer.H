@@ -7,14 +7,14 @@ class Item
 {
 public:
 	Item(char p, string m);
-	int getData() { return data; }
-	void setData(int x) { data = x; }
+	string getData() { return data; }
+	void setData(string x) { data = x; }
 	char getPerson() { return person; }
 	void setPerson(char c) { person = c; }
 	string getMessage() { return message; }
 	void setMessage(string m) { message = m; }
 private:
-	int data;
+	string data;
 	char person; //identifier for the person who the item belongs to
 	string message;
 };
@@ -25,14 +25,16 @@ public:
 	BoundedBuffer(int size, Semaphore* sem);
 	~BoundedBuffer();
 	void add(Item item);
-	Item removeFromRequestBuffer();
 	int getMaxSize() { return maxSize; }
 	void setMaxSize(int x) { maxSize = x; }
-	void addToResponseBuffer(Item item);
-	Item removeFromResponseBuffer();
+	Item remove();
 	Semaphore* s;
+	void finished(){s->P();
+					numFinished++;
+					s->V();}
+	int numFinished;
+	int getSize() {return buffer.size(); }
 private:
-	vector<Item> requestBuffer;
-	vector<Item> responseBuffer;
+	vector<Item> buffer;
 	int maxSize; 
 };
