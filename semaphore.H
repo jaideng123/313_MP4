@@ -39,7 +39,6 @@
 /* CLASS   S e m a p h o r e  */
 /*--------------------------------------------------------------------------*/
 
-Semaphore s(1);
 
 class Semaphore {
 private:

@@ -1,11 +1,7 @@
 #include "BoundedBuffer.H"
+using namespace std;
 
-Item::Item(){
-
-}
-
-Item::Item(int d, char p, string m){
-	data = d;
+Item::Item(char p, string m){
 	person = p;
 	message = m;
 }
@@ -16,17 +12,15 @@ Item::Item(const Item& other){
 	message = other.message;
 }
 
-Item::~Item(){
-}
-
 BoundedBuffer::BoundedBuffer(int size){
+	//
 	maxSize = size;
 }
 
 BoundedBuffer::~BoundedBuffer(){
 }
 
-void BoundedBuffer::addToRequestBuffer(Item item){
+void BoundedBuffer::add(Item item){
 	s.P();
 	if(requestBuffer.size() < maxSize){
 		requestBuffer.push_back(item);

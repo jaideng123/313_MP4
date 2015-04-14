@@ -1,13 +1,12 @@
 #include "semaphore.H"
 #include <vector>
+#include <string>
 using namespace std;
 
 class Item
 {
 public:
-	Item();
-	Item(int d, char p, string m);
-	~Item();
+	Item(char p, string m);
 	int getData() { return data; }
 	void setData(int x) { data = x; }
 	char getPerson() { return person; }
@@ -25,14 +24,15 @@ class BoundedBuffer
 public:
 	BoundedBuffer(int size);
 	~BoundedBuffer();
-	void addToRequestBuffer(Item item);
+	void add(Item item);
 	Item removeFromRequestBuffer();
 	int getMaxSize() { return maxSize; }
 	void setMaxSize(int x) { maxSize = x; }
 	void addToResponseBuffer(Item item);
 	Item removeFromResponseBuffer();
+	Semaphore s;
 private:
 	vector<Item> requestBuffer;
 	vector<Item> responseBuffer;
-	int maxSize = 0; //maximum size the buffer can be
+	int maxSize; 
 };

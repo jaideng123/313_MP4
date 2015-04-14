@@ -8,5 +8,5 @@ reqchannel.o: reqchannel.H reqchannel.C
 dataserver: dataserver.C reqchannel.o 
 	g++ -g -o dataserver dataserver.C reqchannel.o -lpthread
 
-simpleclient: simpleclient.C reqchannel.o
-	g++ -g -o simpleclient simpleclient.C reqchannel.o
+simpleclient: BoundedBuffer.C simpleclient.C reqchannel.o
+	g++ -g -o simpleclient BoundedBuffer.C simpleclient.C reqchannel.o 

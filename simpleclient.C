@@ -29,6 +29,7 @@
 #include <unistd.h>
 
 #include "reqchannel.H"
+#include "BoundedBuffer.H"
 
 using namespace std;
 
@@ -36,7 +37,10 @@ using namespace std;
 /* DATA STRUCTURES */ 
 /*--------------------------------------------------------------------------*/
 
-    /* -- (none) -- */
+struct Arguments{
+	char id;
+	BoundedBuffer* b;
+};
 
 /*--------------------------------------------------------------------------*/
 /* CONSTANTS */
@@ -53,6 +57,14 @@ using namespace std;
 /*--------------------------------------------------------------------------*/
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
+void *request(void *param){
+	Arguments *args = (Arguments *)param;
+	for(int i = 0; i < 10; ++i){
+		Item item(args->id,"data Joe Smith");
+		args->b->add(item);
+	}
+	return NULL;
+}
 
 int main(int argc, char * argv[]) {
 
