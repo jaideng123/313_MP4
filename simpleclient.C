@@ -68,9 +68,9 @@ void *request(void *param){
 }
 void *worker(void *param){
   BoundedBuffer* b = (BoundedBuffer *)param;
+  RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
   while(b->numFinished != 3 && b->getSize() != 0){
     Item i = b->remove();
-    RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
     i.setData(chan.send_request(i.getMessage()));
   }
 }
@@ -93,7 +93,7 @@ int main(int argc, char * argv[]) {
     return -1;
   }
   Semaphore s(1);
-  BoundedBuffer b(50,&s);
+  BoundedBuffer b(30,&s);
   Arguments arg1;
   arg1.id = 'j';
   arg1.b = &b;
@@ -106,11 +106,18 @@ int main(int argc, char * argv[]) {
   arg3.id = 'g';
   arg3.b = &b;
   pthread_create(&clients[2], NULL, request, &arg3);
+  for (int i = 0; i < 3; ++i)
+  {
+    pthread_create(&workers[i], NULL, worker, &b);
+  }
   for (int i = 0; i < clients.size(); ++i)
   {
     pthread_join(clients[i], NULL);
   }
-  cout<<b.getSize()<<endl;
-
+  for (int i = 0; i < 3; ++i)
+  {
+    pthread_join(workers[i], NULL);
+  }
   usleep(1000000);
+  cout<<b.getSize()<<endl;
 }
