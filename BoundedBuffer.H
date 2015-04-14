@@ -22,7 +22,7 @@ private:
 class BoundedBuffer
 {
 public:
-	BoundedBuffer(int size);
+	BoundedBuffer(int size, Semaphore* sem);
 	~BoundedBuffer();
 	void add(Item item);
 	Item removeFromRequestBuffer();
@@ -30,7 +30,7 @@ public:
 	void setMaxSize(int x) { maxSize = x; }
 	void addToResponseBuffer(Item item);
 	Item removeFromResponseBuffer();
-	Semaphore s;
+	Semaphore* s;
 private:
 	vector<Item> requestBuffer;
 	vector<Item> responseBuffer;
