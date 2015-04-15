@@ -68,8 +68,8 @@ void *request(void *param){
 }
 void *worker(void *param){
   BoundedBuffer* b = (BoundedBuffer *)param;
-  RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
-  while(b->numFinished != 3 && b->getSize() != 0){
+  RequestChannel chan("Worker", RequestChannel::CLIENT_SIDE);
+  while(b->numFinished < 3 || b->getSize() > 0){
     Item i = b->remove();
     i.setData(chan.send_request(i.getMessage()));
   }
@@ -78,9 +78,6 @@ void *worker(void *param){
 int main(int argc, char * argv[]) {
   pid_t parent = getpid();
   pid_t pid = fork();
-  vector<pthread_t> clients(3);
-  vector<pthread_t> workers(3);
-
   if (pid == -1)
   {
     // error, failed to fork()
@@ -92,6 +89,9 @@ int main(int argc, char * argv[]) {
       cout<<"Error, fork failed"<<endl;
     return -1;
   }
+  vector<pthread_t> clients(3);
+  vector<pthread_t> workers(3);
+  
   Semaphore s(1);
   BoundedBuffer b(30,&s);
   Arguments arg1;
@@ -118,6 +118,7 @@ int main(int argc, char * argv[]) {
   {
     pthread_join(workers[i], NULL);
   }
+  //chan.send_request(i.getMessage();
   usleep(1000000);
   cout<<b.getSize()<<endl;
 }
