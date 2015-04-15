@@ -24,6 +24,9 @@
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdlib.h>
+#include <cstring>
+#include <algorithm>  
 
 #include <errno.h>
 #include <unistd.h>
@@ -59,23 +62,43 @@ struct Arguments{
 /*--------------------------------------------------------------------------*/
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
+vector< vector<int> > hist(3);
 void *request(void *param){
 	Arguments *args = (Arguments *)param;
 	for(int i = 0; i < 10; ++i){
 		Item item(args->id,"data Joe Smith");
 		args->b->add(item);
-    cout<<"Message Added\n";
 	}
   args->b->finished();
 }
 void *worker(void *param){
-  BoundedBuffer* b = (BoundedBuffer *)param;
-  RequestChannel chan("worker", RequestChannel::CLIENT_SIDE);
-  while(b->numFinished < 3 || b->getSize() != 0){
-    Item i = b->remove();
+  Arguments* arg = (Arguments *)param;
+  RequestChannel chan(arg->channel, RequestChannel::CLIENT_SIDE);
+  while(arg->b->numFinished < 3 || arg->b->getSize() != 0){
+    Item i = arg->b->remove();
     if(i.getMessage() != "NULL" && i.getPerson() != 'n'){
-      cout<<"Message sent\n";
-      //i.setData(chan.send_request(i.getMessage()));
+      i.setData(chan.send_request(i.getMessage()));
+      cout<<"\nResponse: "<<i.getData()<<i.getPerson()<<endl;
+      if(i.getPerson() == 'j')
+        hist[0][atoi(i.getData().c_str())]++;
+      else if(i.getPerson() == 'l')
+        hist[1][atoi(i.getData().c_str())]++;
+      else if(i.getPerson() == 'g')
+        hist[2][atoi(i.getData().c_str())]++;
+    }
+  }
+  chan.send_request("quit");
+}
+void printHistogram(){
+  for (int i = 0; i < 3; ++i)
+  {
+    cout<<"Histogram: "<<i+1<<endl;
+    for (int j = 0; j < 100; ++j)
+    {
+      cout<<j<<":";
+      for (int k = 0; k < hist[i][j]; ++k)
+        cout<<"*";
+      cout<<endl;
     }
   }
 }
@@ -96,6 +119,10 @@ int main(int argc, char * argv[]) {
   }
   vector<pthread_t> clients(3);
   vector<pthread_t> workers(3);
+  vector<int> temp(100);
+  hist[0] = temp;
+  hist[1] = temp;
+  hist[2] = temp;
   RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
   Semaphore s(1);
   BoundedBuffer b(15,&s);
@@ -112,9 +139,12 @@ int main(int argc, char * argv[]) {
   arg3.b = &b;
   pthread_create(&clients[2], NULL, request, &arg3);
     //usleep(10000000);
+  vector<Arguments> arr(3);
   for (int i = 0; i < 3; ++i)
   {
-    pthread_create(&workers[i], NULL, worker, &b);
+    arr[i].channel = chan.send_request("newthread");
+    arr[i].b = &b;
+    pthread_create(&workers[i], NULL, worker, &arr[i]);
   }
   for (int i = 0; i < clients.size(); ++i)
   {
@@ -126,5 +156,5 @@ int main(int argc, char * argv[]) {
   }
   chan.send_request("quit");
   usleep(1000000);
-  cout<<b.getSize()<<endl;
+  printHistogram();
 }
