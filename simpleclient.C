@@ -41,6 +41,7 @@ using namespace std;
 struct Arguments{
 	char id;
 	BoundedBuffer* b;
+  string channel;
 };
 
 /*--------------------------------------------------------------------------*/
@@ -69,7 +70,7 @@ void *request(void *param){
 }
 void *worker(void *param){
   BoundedBuffer* b = (BoundedBuffer *)param;
-  RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
+  RequestChannel chan("worker", RequestChannel::CLIENT_SIDE);
   while(b->numFinished < 3 || b->getSize() != 0){
     Item i = b->remove();
     if(i.getMessage() != "NULL" && i.getPerson() != 'n'){
@@ -95,7 +96,7 @@ int main(int argc, char * argv[]) {
   }
   vector<pthread_t> clients(3);
   vector<pthread_t> workers(3);
-  
+  RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
   Semaphore s(1);
   BoundedBuffer b(15,&s);
   Arguments arg1;
@@ -119,11 +120,11 @@ int main(int argc, char * argv[]) {
   {
     pthread_join(clients[i], NULL);
   }
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < 1; ++i)
   {
     pthread_join(workers[i], NULL);
   }
-  //chan.send_request(i.getMessage();
+  chan.send_request("quit");
   usleep(1000000);
   cout<<b.getSize()<<endl;
 }
