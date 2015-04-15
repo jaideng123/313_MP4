@@ -44,6 +44,7 @@ using namespace std;
 struct Arguments{
 	char id;
 	BoundedBuffer* b;
+	unsigned int numRequests;
   string channel;
 };
 
@@ -65,9 +66,19 @@ struct Arguments{
 vector< vector<int> > hist(3);
 void *request(void *param){
 	Arguments *args = (Arguments *)param;
-	for(int i = 0; i < 10; ++i){
-		Item item(args->id,"data Joe Smith");
-		args->b->add(item);
+	for(int i = 0; i < args->numRequests; ++i){
+		if (args->id == 'j'){
+			Item item('j',"data Joe Smith");
+			args->b->add(item);
+		}
+		else if(args->id == 'l'){
+			Item item('l',"data Jane Smith");
+			args->b->add(item);
+		}
+		else if(args->id == 'g'){
+			Item item('g',"data John Doe");
+			args->b->add(item);
+		}
 	}
   args->b->finished();
 }
@@ -78,7 +89,7 @@ void *worker(void *param){
     Item i = arg->b->remove();
     if(i.getMessage() != "NULL" && i.getPerson() != 'n'){
       i.setData(chan.send_request(i.getMessage()));
-      cout<<"\nResponse: "<<i.getData()<<i.getPerson()<<endl;
+      cout << "\nResponse: " << i.getData() << " " << i.getPerson() << endl;
       if(i.getPerson() == 'j')
         hist[0][atoi(i.getData().c_str())]++;
       else if(i.getPerson() == 'l')
@@ -90,16 +101,21 @@ void *worker(void *param){
   chan.send_request("quit");
 }
 void printHistogram(){
+  unsigned int numStars = 0;
   for (int i = 0; i < 3; ++i)
   {
+    numStars = 0;
     cout<<"Histogram: "<<i+1<<endl;
     for (int j = 0; j < 100; ++j)
     {
       cout<<j<<":";
-      for (int k = 0; k < hist[i][j]; ++k)
+      for (int k = 0; k < hist[i][j]; ++k){
         cout<<"*";
+		++numStars;
+	  }
       cout<<endl;
     }
+	cout << "Size of Histogram " << i+1 << ": " << numStars << endl;
   }
 }
 
@@ -117,26 +133,53 @@ int main(int argc, char * argv[]) {
       cout<<"Error, fork failed"<<endl;
     return -1;
   }
+  
+  int c;
+  int index;
+  int n = 10; //number of data requests per person
+  int br = 15; //size of bounded buffer in requests
+  int w = 3; //number of worker threads
+  while ((c = getopt (argc, argv, "n:b:w:")) != -1) {
+  switch(c) {
+	case 'n':
+		n = atoi(optarg);
+		break;
+	case 'b':
+		br = atoi(optarg);
+		break;
+	case 'w':
+		w = atoi(optarg);
+		break;
+	case '?':
+		return 1;
+	default:
+		abort();
+	}
+  }
+  cout << "n: " << n << " b: " << br << " w: " << w << endl;
   vector<pthread_t> clients(3);
-  vector<pthread_t> workers(3);
+  vector<pthread_t> workers(w);
   vector<int> temp(100);
   hist[0] = temp;
   hist[1] = temp;
   hist[2] = temp;
   RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
   Semaphore s(1);
-  BoundedBuffer b(15,&s);
+  BoundedBuffer b(br,&s);
   Arguments arg1;
   arg1.id = 'j';
   arg1.b = &b;
+  arg1.numRequests = n;
   pthread_create(&clients[0], NULL, request, &arg1);
   Arguments arg2;
   arg2.id = 'l';
   arg2.b = &b;
+  arg2.numRequests = n;
   pthread_create(&clients[1], NULL, request, &arg2);
   Arguments arg3;
   arg3.id = 'g';
   arg3.b = &b;
+  arg3.numRequests = n;
   pthread_create(&clients[2], NULL, request, &arg3);
     //usleep(10000000);
   vector<Arguments> arr(3);
@@ -157,4 +200,10 @@ int main(int argc, char * argv[]) {
   chan.send_request("quit");
   usleep(1000000);
   printHistogram();
+  
+  //for getopt failures
+	for(index = optind; index < argc; ++index){
+		printf("Non-option argument %s\n", argv[index]);
+	}
+	return 0;
 }
