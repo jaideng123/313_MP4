@@ -24,18 +24,24 @@ void BoundedBuffer::add(Item item){
 	else{
 		s->V();
 		while (true){
-			if(buffer.size() < maxSize){
 			s->P();
-			buffer.push_back(item);
-			s->V();
-			break;
+			if(buffer.size() < maxSize){
+				buffer.push_back(item);
+				s->V();
+				break;
 			}
+			s->V();
+			usleep(10000);
 		}
 	}
 }
 
 Item BoundedBuffer::remove(){
 	s->P();
+	if(buffer.size() == 0){
+		s->V();
+		return Item('n',"NULL");
+	}
 	Item item(buffer[0].getPerson(),buffer[0].getMessage());
 	buffer.erase(buffer.begin());
 	s->V();

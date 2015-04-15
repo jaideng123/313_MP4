@@ -1,6 +1,7 @@
 #include "semaphore.H"
 #include <vector>
 #include <string>
+#include <unistd.h>
 using namespace std;
 
 class Item
