@@ -111,6 +111,7 @@ void *histogram(void *param){
 	while(arg->b->numFinished < 3 || arg->b->getSize() > 0){
 		 Item i = arg->b->remove();
 		 if(i.getMessage() != "NULL" && i.getPerson() != 'n'){
+			 cout<<"Data:"<<i.getData()<<endl;
 			if(i.getPerson() == 'j')
 				hist[0][atoi(i.getData().c_str())]++;
 			else if(i.getPerson() == 'l')
@@ -119,7 +120,6 @@ void *histogram(void *param){
 				hist[2][atoi(i.getData().c_str())]++;
 		 }
 	}
-	cout<<"\nDone!" <<arg->id<<endl;
 }
 
 int main(int argc, char * argv[]) {
