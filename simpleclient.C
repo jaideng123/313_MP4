@@ -46,6 +46,12 @@ struct Arguments{
 	BoundedBuffer* b;
 	unsigned int numRequests;
   string channel;
+  vector<BoundedBuffer*> buffers;
+};
+struct histogramArgs{
+  int id;
+  BoundedBuffer* b;
+  int numWorkers;
 };
 
 /*--------------------------------------------------------------------------*/
@@ -64,6 +70,7 @@ struct Arguments{
 /* MAIN FUNCTION */
 /*--------------------------------------------------------------------------*/
 vector< vector<int> > hist(3);
+template<typename T> T* getPointer(T& t) { return &t; }
 void *request(void *param){
 	Arguments *args = (Arguments *)param;
 	for(int i = 0; i < args->numRequests; ++i){
@@ -100,7 +107,16 @@ void *worker(void *param){
   }
   chan.send_request("quit");
 }
-void printHistogram(){
+void *histogram(void *param){
+  histogramArgs* arg = (histogramArgs *)param;
+  while(arg->b->getSize() != 0 || arg->b->numFinished < arg->numWorkers){
+    Item i = arg->b->remove();
+    if(i.getMessage() != "NULL" && i.getPerson() != 'n'){
+      hist[arg->id][atoi(i.getData().c_str())]++;
+    }
+  }
+}
+void printHistograms(){
   unsigned int numStars = 0;
   for (int i = 0; i < 3; ++i)
   {
@@ -181,12 +197,22 @@ int main(int argc, char * argv[]) {
   arg3.b = &b;
   arg3.numRequests = n;
   pthread_create(&clients[2], NULL, request, &arg3);
-    //usleep(10000000);
   vector<Arguments> arr(3);
+  vector<BoundedBuffer> histBuffers;
+  vector<Semaphore> histSemaphores;
+  for (int i = 0; i < 3; ++i)
+  {
+    histSemaphores.push_back(Semaphore(1));
+    histBuffers.push_back(BoundedBuffer(br,&histSemaphores[i]));
+  }
   for (int i = 0; i < 3; ++i)
   {
     arr[i].channel = chan.send_request("newthread");
     arr[i].b = &b;
+    for (int j = 0; j < 3; ++i)
+    {
+      arr[i].buffers.push_back(&histBuffers[j]);
+    }
     pthread_create(&workers[i], NULL, worker, &arr[i]);
   }
   for (int i = 0; i < clients.size(); ++i)
@@ -199,7 +225,7 @@ int main(int argc, char * argv[]) {
   }
   chan.send_request("quit");
   usleep(1000000);
-  printHistogram();
+  printHistograms();
   
   //for getopt failures
 	for(index = optind; index < argc; ++index){
