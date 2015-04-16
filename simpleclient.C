@@ -69,7 +69,7 @@ struct Arguments{
 vector< vector<int> > hist(3);
 void *request(void *param){
   Arguments *args = (Arguments *)param;
-  for(int i = 0; i < 10; ++i){
+  for(int i = 0; i < args->rep; ++i){
     Item item(args->id,"data Joe Smith");
     args->b->add(item);
   }
@@ -137,33 +137,38 @@ int main(int argc, char * argv[]) {
     return -1;
   }
   int w = 3;
+  int n = 10;
+  int bb = 15;
   vector<pthread_t> clients(3);
   vector<pthread_t> workers(w);
-  vector<pthread_t> histWorkers(w);
+  vector<pthread_t> histWorkers(3);
   vector<int> temp(100);
   hist[0] = temp;
   hist[1] = temp;
   hist[2] = temp;
   RequestChannel chan("control", RequestChannel::CLIENT_SIDE);
   Semaphore s(1);
-  BoundedBuffer b(15,&s);
+  BoundedBuffer b(bb,&s);
   Arguments arg1;
   arg1.id = 'j';
   arg1.b = &b;
+  arg1.rep = n;
   pthread_create(&clients[0], NULL, request, &arg1);
   Arguments arg2;
   arg2.id = 'l';
   arg2.b = &b;
+  arg2.rep = n;
   pthread_create(&clients[1], NULL, request, &arg2);
   Arguments arg3;
   arg3.id = 'g';
   arg3.b = &b;
+  arg3.rep = n;
   pthread_create(&clients[2], NULL, request, &arg3);
     //usleep(10000000);
   vector<Arguments> arr(w);
-  BoundedBuffer hist1(30,&s);
-  BoundedBuffer hist2(30,&s);
-  BoundedBuffer hist3(30,&s);
+  BoundedBuffer hist1(bb,&s);
+  BoundedBuffer hist2(bb,&s);
+  BoundedBuffer hist3(bb,&s);
   for (int i = 0; i < w; ++i)
   {
     arr[i].channel = chan.send_request("newthread");
