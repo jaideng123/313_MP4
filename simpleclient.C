@@ -94,7 +94,6 @@ void *worker(void *param){
   arg->b1->finished();
   arg->b2->finished();
   arg->b3->finished();
-  cout<<endl<<arg->b3->numFinished<<":"<<arg->b3->getSize()<<endl;
   chan.send_request("quit");
 }
 void printHistogram(int i){
@@ -110,8 +109,6 @@ void printHistogram(int i){
 void *histogram(void *param){
 	Arguments* arg = (Arguments *)param;
 	while(arg->b->numFinished < 3 || arg->b->getSize() > 0){
-		if(arg->id == 'g')
-			cout<<endl<<arg->b->numFinished<<":"<<arg->b->getSize()<<endl;
 		 Item i = arg->b->remove();
 		 if(i.getMessage() != "NULL" && i.getPerson() != 'n'){
 			if(i.getPerson() == 'j')
@@ -188,8 +185,8 @@ int main(int argc, char * argv[]) {
   pthread_create(&histWorkers[1], NULL, histogram, &arg5);
   Arguments arg6;
   arg6.id = 'g';
-  arg4.rep = w;
-  arg4.b = &hist3;
+  arg6.rep = w;
+  arg6.b = &hist3;
   pthread_create(&histWorkers[2], NULL, histogram, &arg6);
   
   for (int i = 0; i < clients.size(); ++i)
