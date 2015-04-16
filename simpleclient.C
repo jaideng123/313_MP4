@@ -45,6 +45,7 @@ struct Arguments{
   char id;
   BoundedBuffer* b;
   string channel;
+  vector<BoundedBuffer *> buffers;
 };
 
 /*--------------------------------------------------------------------------*/
@@ -89,6 +90,10 @@ void *worker(void *param){
   }
   chan.send_request("quit");
 }
+void *histogram(void *param){
+	Arguments* arg = (Arguments *)param;
+	
+}
 void printHistogram(){
   for (int i = 0; i < 3; ++i)
   {
@@ -120,6 +125,7 @@ int main(int argc, char * argv[]) {
   int w = 40;
   vector<pthread_t> clients(3);
   vector<pthread_t> workers(w);
+  vector<pthread_t> histWorkers(w);
   vector<int> temp(100);
   hist[0] = temp;
   hist[1] = temp;
@@ -141,6 +147,9 @@ int main(int argc, char * argv[]) {
   pthread_create(&clients[2], NULL, request, &arg3);
     //usleep(10000000);
   vector<Arguments> arr(w);
+  vector<BoundedBuffer> histBuffers;
+  for(int i =0; i < 3;++i)
+	histBuffers.push_back(BoundedBuffer(30,&s));
   for (int i = 0; i < w; ++i)
   {
     arr[i].channel = chan.send_request("newthread");
