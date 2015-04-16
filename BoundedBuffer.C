@@ -43,6 +43,7 @@ Item BoundedBuffer::remove(){
 		return Item('n',"NULL");
 	}
 	Item item(buffer[0].getPerson(),buffer[0].getMessage());
+	item.setData(buffer[0].getData());
 	buffer.erase(buffer.begin());
 	s->V();
 	return item;
