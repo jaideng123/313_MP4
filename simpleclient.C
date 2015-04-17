@@ -108,7 +108,7 @@ void printHistogram(int i){
 }
 void *histogram(void *param){
 	Arguments* arg = (Arguments *)param;
-	while(arg->b->numFinished < 3 || arg->b->getSize() > 0){
+	while(arg->b->numFinished < arg->rep || arg->b->getSize() > 0){
 		 Item i = arg->b->remove();
 		 if(i.getMessage() != "NULL" && i.getPerson() != 'n'){
 			 cout<<"Data:"<<i.getData()<<endl;
