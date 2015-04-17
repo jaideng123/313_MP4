@@ -111,6 +111,26 @@ void printHistogram(int i){
     }
     cout<<"Requests :"<<x<<endl;
 }
+void printHist(){
+	cout << "Range\tJohn Smith\tJoeSmith\tJaneSmith" << endl;
+	int total = 0;
+	int curfreq = 0;
+	for(int i = 0; i < 10; ++i){
+	cout << i*10 << "-" << (i*10)+9 << '\t';
+		for(int p = 0; p < 3; ++p){
+			for (int j = i*10; j < ((i*10)+10); ++j){
+			  for (int k = 0; k < hist[p][j]; ++k){
+					++curfreq;
+				}
+			}
+			cout << curfreq << "\t\t";
+			total += curfreq;
+			curfreq = 0;
+		}
+		cout << endl;
+	}
+	cout << "Total = " << total << endl;
+}
 void *histogram(void *param){
 	Arguments* arg = (Arguments *)param;
 	while(arg->b->numFinished < arg->rep || arg->b->getSize() > 0){
@@ -233,9 +253,8 @@ int main(int argc, char * argv[]) {
   }
   chan.send_request("quit");
   usleep(1000000);
-  for(int i = 0; i < 3; ++i)
-	  printHistogram(i);
-	  
+  
+	printHist();
   //for getopt failures
 	for(index = optind; index < argc; ++index){
 		printf("Non-option argument %s\n", argv[index]);
