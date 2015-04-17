@@ -70,7 +70,7 @@ vector< vector<int> > hist(3);
 void *request(void *param){
   Arguments *args = (Arguments *)param;
   for(int i = 0; i < args->rep; ++i){
-    Item item(args->id,"data Joe Smith");
+    Item item(args->id,"data "+string(1,args->id)+" Smith");
     args->b->add(item);
   }
   args->b->finished();
@@ -97,14 +97,19 @@ void *worker(void *param){
   chan.send_request("quit");
 }
 void printHistogram(int i){
-    cout<<"Histogram: "<<i+1<<endl;
+    string name = "JLG";
+    cout<<"Histogram: "<<name[i]<<endl;
+    int x = 0;
     for (int j = 0; j < 100; ++j)
     {
       cout<<j<<":";
-      for (int k = 0; k < hist[i][j]; ++k)
+      for (int k = 0; k < hist[i][j]; ++k){
         cout<<"*";
+        ++x;
+      }
       cout<<endl;
     }
+    cout<<"\nRequests :"<<x<<endl;
 }
 void *histogram(void *param){
 	Arguments* arg = (Arguments *)param;
