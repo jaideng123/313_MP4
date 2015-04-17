@@ -136,9 +136,29 @@ int main(int argc, char * argv[]) {
       cout<<"Error, fork failed"<<endl;
     return -1;
   }
-  int w = 3;
-  int n = 10;
-  int bb = 15;
+  int c;
+  int index;
+  int n = 10; //number of data requests per person
+  int bb = 15; //size of bounded buffer in requests
+  int w = 3; //number of worker threads
+  while ((c = getopt (argc, argv, "n:b:w:")) != -1) {
+  switch(c) {
+	case 'n':
+		n = atoi(optarg);
+		break;
+	case 'b':
+		bb = atoi(optarg);
+		break;
+	case 'w':
+		w = atoi(optarg);
+		break;
+	case '?':
+		return 1;
+	default:
+		abort();
+	}
+  }
+  cout << "n: " << n << " b: " << bb << " w: " << w << endl;
   vector<pthread_t> clients(3);
   vector<pthread_t> workers(w);
   vector<pthread_t> histWorkers(3);
@@ -210,4 +230,10 @@ int main(int argc, char * argv[]) {
   usleep(1000000);
   for(int i = 0; i < 3; ++i)
 	  printHistogram(i);
+	  
+  //for getopt failures
+	for(index = optind; index < argc; ++index){
+		printf("Non-option argument %s\n", argv[index]);
+	}
+	return 0;
 }
