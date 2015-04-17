@@ -109,7 +109,7 @@ void printHistogram(int i){
       }
       cout<<endl;
     }
-    cout<<"\nRequests :"<<x<<endl;
+    cout<<"Requests :"<<x<<endl;
 }
 void *histogram(void *param){
 	Arguments* arg = (Arguments *)param;
